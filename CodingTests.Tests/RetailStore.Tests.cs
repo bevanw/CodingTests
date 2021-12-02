@@ -6,6 +6,14 @@ namespace CodingTests.Tests
     [TestFixture]
     public class RetailStoreTests
     {
+        // Grid:
+        //  - - - -
+        //  - - X -
+        //  X - - X
+        // Expected:
+        //  - - - -
+        //  - - X -
+        //  X $ $ X
         [Test]
         public void RetailStore_Should_FindTwoLocations_When_HousesHaveTwoEmptyPlots()
         {
@@ -17,6 +25,12 @@ namespace CodingTests.Tests
             store.FindLocations(K, A).Should().Be(2);
         }
 
+        // Grid:
+        //  - X
+        //  - -
+        // Expected:
+        //  $ X
+        //  - $
         [Test]
         public void RetailStore_Should_FindTwoLocations_When_HousesHaveAdjacentSpace()
         {
@@ -28,6 +42,18 @@ namespace CodingTests.Tests
             store.FindLocations(K, A).Should().Be(2);
         }
 
+        // Grid:
+        //  - - - X
+        //  - X - -
+        //  - - X -
+        //  X - - -
+        //  - - - -
+        // Expected:
+        //  $ $ - X
+        //  $ X $ -
+        //  - $ X $
+        //  X - $ $
+        //  - - - -
         [Test]
         public void RetailStore_Should_FindEightLocations_When_HousesHaveMultipleEmpltyPlots()
         {

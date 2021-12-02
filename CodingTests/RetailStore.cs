@@ -16,12 +16,15 @@ namespace CodingTests
         public int FindLocations(int K, int[][] A)
         {
             // Build our grid using objects.
-            Grid grid = new Grid(A.Length + 1, A[0].Length + 1);
+            Grid grid = new Grid(A.Length, A[0].Length);
             for (int row = 0; row < A.Length; row++)
             {
                 for (int column = 0; column < A[row].Length; column++)
                 {
-                    grid.AddGridSpace(row + 1, column + 1, A[row][column] == 0);
+                    if (A[row][column] == 0)
+                        grid.AddSpace(row + 1, column + 1);
+                    else
+                        grid.AddHouse(row + 1, column + 1);
                 }
             }
 
@@ -38,12 +41,18 @@ namespace CodingTests
         }
 
         public Dictionary<GridLocation, GridPlot> GridSpaces { get; } = new Dictionary<GridLocation, GridPlot>();
+        public Dictionary<GridLocation, GridPlot> HouseSpaces { get; } = new Dictionary<GridLocation, GridPlot>();
         public int Rows { get; }
         public int Columns { get; }
 
-        public void AddGridSpace(int row, int column, bool isEmpty)
+        public void AddSpace(int row, int column)
         {
-            GridSpaces.Add(new GridLocation(row, column), new GridPlot(isEmpty));
+            GridSpaces.Add(new GridLocation(row, column), new GridPlot());
+        }
+
+        public void AddHouse(int row, int column)
+        {
+            HouseSpaces.Add(new GridLocation(row, column), new GridPlot());
         }
 
         public int FindEmptyLocations(int maxDistance)
@@ -52,37 +61,50 @@ namespace CodingTests
             if (Rows == 1 && Columns == 1)
                 return 0;
 
-            // Attempt to work out if the empty plot is buildable based on the distance to the nearest house.
-            foreach (var emptyGridSpace in GridSpaces.Where(g => g.Value.IsEmpty))
+            // Attempt to work out the nearest plots to all houses.
+            int houses = 0;
+            List<GridPlot> possibleSpaces = new List<GridPlot>();
+            foreach (var house in HouseSpaces)
             {
-                bool isBuildable = true;
-                foreach (var house in GridSpaces.Where(g => !g.Value.IsEmpty))
+                houses++;
+
+                // Only loop through grid tiles near the house.
+                // Still inefficient - but readable.
+                foreach (var emptyGridSpace in GridSpaces
+                    .Where(g => g.Key.Row >= (house.Key.Row - maxDistance))
+                    .Where(g => g.Key.Row <= (house.Key.Row + maxDistance))
+                    .Where(g => g.Key.Column >= (house.Key.Column - maxDistance))
+                    .Where(g => g.Key.Column <= (house.Key.Column + maxDistance)))
                 {
-                    int rowDistance = Math.Abs(emptyGridSpace.Key.Row - house.Key.Row);
-                    int columnDistance = Math.Abs(emptyGridSpace.Key.Column - house.Key.Column);
-                    if ((rowDistance + columnDistance) > maxDistance)
+                    if (IsPlotBuildable(maxDistance, emptyGridSpace.Key, house.Key))
                     {
-                        isBuildable = false;
-                        break;
+                        emptyGridSpace.Value.SetBuildable();
+                        possibleSpaces.Add(emptyGridSpace.Value);
                     }
                 }
-
-                emptyGridSpace.Value.IsBuildable = isBuildable;
             }
 
-            return GridSpaces.Values.Count(g => g.IsBuildable);
+            return possibleSpaces.Count(g => g.IsBuildableCount == houses);
+        }
+
+        private static bool IsPlotBuildable(int maxDistance, GridLocation gridLocation, GridLocation houseLocation)
+        {
+            int rowDistance = Math.Abs(gridLocation.Row - houseLocation.Row);
+            int columnDistance = Math.Abs(gridLocation.Column - houseLocation.Column);
+            if ((rowDistance + columnDistance) <= maxDistance)
+                return true;
+            return false;
         }
     }
 
     public class GridPlot
     {
-        public GridPlot(bool isEmpty)
+        public void SetBuildable()
         {
-            IsEmpty = isEmpty;
+            IsBuildableCount++;
         }
 
-        public bool IsEmpty { get; }
-        public bool IsBuildable { get; set; }
+        public int IsBuildableCount { get; private set;  }
     }
 
     public struct GridLocation
