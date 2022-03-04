@@ -17,46 +17,41 @@ namespace CodingTests
             public T Item;
         }
 
-        private readonly List<Drop> entries = new();
+        private readonly List<Drop> Entries = new();
+
         private readonly Random rand = new();
 
-        private double accumulatedWeight;
+        public double accumulatedWeight;
 
         /// <summary>
         /// Adds a drop to the drop table.
         /// </summary>
         /// <param name="item">Item to drop.</param>
-        /// <param name="dropWeight">Drop weight as a fraction..</param>
+        /// <param name="dropWeight">Drop weight as a fraction.</param>
         public void AddDrop(T item, Fraction dropWeight)
         {
             accumulatedWeight += dropWeight.ToDouble();
-            entries.Add(new Drop(item, accumulatedWeight));
-        }
-
-        /// <summary>
-        /// Inserts a blank drop to fill up gaps.
-        /// </summary>
-        public void AddBlankDrop()
-        {
-            double weight = 1 - accumulatedWeight;
-            accumulatedWeight += weight;
-            entries.Add(new Drop(default, accumulatedWeight));
+            Entries.Add(new Drop(item, accumulatedWeight));
         }
 
         /// <summary>
         /// Generates a drop based on the drop rate.
         /// </summary>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>A drop.</returns>
+        /// <exception cref="InvalidOperationException">No entries added.</exception>
         public T GenerateDrop()
         {
+            // Useful incase we allow drop weighting <> 1 - has no effect if accumulatedWeight is 1 as X*1 = X.
             double r = rand.NextDouble() * accumulatedWeight;
 
-            foreach (Drop entry in entries)
-            {
+            // An example:
+            //    - Three items are added, all with 1/10 drop rate.
+            //    - Each drop is accumulated at 0.1, 0.2, 0.3.
+            //    - Add a blank drop at 0.7 to accomodate the rest.
+            //    - As R has been multiplied by the total weighting, it will always be restricted to within the ranges of drops.
+            foreach (Drop entry in Entries)
                 if (entry.AccumulatedWeight >= r)
                     return entry.Item;
-            }
 
             throw new InvalidOperationException("No entries added");
         }
