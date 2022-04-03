@@ -1,0 +1,7 @@
+{
+    "scripts": {
+      "build": "dotnet build",
+      "clean": "dotnet clean",
+      "test": "dotnet test"
+    }
+  }

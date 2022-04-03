@@ -1,5 +1,4 @@
-﻿
-using Fractions;
+﻿using Fractions;
 
 namespace CodingTests
 {
