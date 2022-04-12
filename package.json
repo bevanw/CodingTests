@@ -2,6 +2,7 @@
     "scripts": {
       "build": "dotnet build",
       "clean": "dotnet clean",
+      "delete": "for /d %G in (CodingTests\\bin,CodingTests\\obj,CodingTests.Tests\\bin,CodingTests.Tests\\obj) do rd /s /q \"%~fG\"",
       "test": "dotnet test"
     }
   }
